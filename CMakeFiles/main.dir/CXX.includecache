@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/c/Users/joshr/Documents/CS111_RSA/main.cpp
+iostream
+-
+cmath
+-
+fstream
+-
+vector
+-
+string
+-
+
