@@ -1,6 +1,7 @@
 /* 
  * File:   main.cpp
- * Author: Josh McIntyre
+ * Author(s): Josh McIntyre 862054277
+ *            Cody Steimle 862137374
  * Created on February 3, 2020, 6:06 PM
  */
 
@@ -43,11 +44,12 @@ int main(int argc, char** argv) {
     cout<<"phi(n) is "<<phiN<<endl;
     
     cout<<"e and phi(n) are "<<((findGCD(e, phiN) == 1)?"coprime\n":"not coprime so e and n are invalid!\n");
-    if((findGCD(e, phiN) != 1)) return 0;
+    if((findGCD(e, phiN) != 1)) return 0;       // Terminates program for invalid inputs
     
-    // Attempt to find d (bruteforce integer guessing)
-    for(int i = 0; i < 100000; i++) {
-        int tmp = (i*e)%phiN;
+    // Attempt to find d (bruteforce integer guessing), WILL NOT WORK IF d > MAX_D
+    int MAX_D = 100000;
+    for(int i = 0; i < MAX_D; i++) {
+        int tmp = (i*e) % phiN;
         if(tmp == 1) {
             d = i;
             i = 100000;
@@ -57,6 +59,7 @@ int main(int argc, char** argv) {
     
     cout<<"d is "<<d<<endl;
     
+    // Decryption
     if(!isEnc) {
         // Read from input file
         ifstream file("input.txt");
@@ -113,13 +116,13 @@ int main(int argc, char** argv) {
             }
         }
 
-        cout<<"\nDecoded Message -> "<<output<<endl;
-
         ofstream out;
         out.open("output.txt");
         out<<output<<endl;
         out.close();
     }
+    
+    // Encryption
     else {
         vector<unsigned long long int> cipher;
         
@@ -133,7 +136,9 @@ int main(int argc, char** argv) {
         char chars[text.size()] = {};
         for(int i = 0; i < text.size(); i++)
             chars[i] = text[i];
-        // cout<<"Chars: "<<text<<endl;
+        
+        cout<<"Raw Output: ";
+        
         for(int i = 0; i < text.size(); i++) {
             
             // Encode characters (A=2, B=3, ..., Z=27, SPACE=28)
