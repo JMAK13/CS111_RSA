@@ -5,6 +5,7 @@
  * Created on February 3, 2020, 6:06 PM
  */
 
+#include <cstdlib>
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -33,18 +34,30 @@ int main(int argc, char** argv) {
     (choice == "e") ? isEnc = true : isEnc = false;
     
     pq = getPQ(n);
+    cout<<"p is "<<pq[0]<<endl;
+    cout<<"q is "<<pq[1]<<endl;
+    cout<<pq[0]<<" is "<<(isPrime(pq[0])==1?"prime":"nonprime")<<endl;
+    cout<<pq[1]<<" is "<<(isPrime(pq[1])==1?"prime":"nonprime")<<endl;
     
     phiN = ((pq[0]-1) * (pq[1]-1));
+    cout<<"phiN is "<<phiN<<endl;
     
     // Attempt to find d (bruteforce integer guessing), WILL NOT WORK IF d > MAX_D
     int MAX_D = 10000000;
-    for(int i = 0; i < MAX_D; i++) {
-        int tmp = (i*e) % phiN;
+    for(int i = 1; i < MAX_D; i++) {
+        
+        int tmp = (i*e);
+        
+        if(tmp > phiN) tmp %= phiN;
+        
         if(tmp == 1) {
             d = i;
             i = 10000000;
         }
+        
     }
+    
+    cout<<"d is "<<d<<endl;
     
     // Decryption
     if(!isEnc) {
@@ -58,24 +71,14 @@ int main(int argc, char** argv) {
     
         string output = "";
         for(int i = 0; i < array.size(); i++) {
-            int tmp = d;
-            int tmp2;
-            int product = 1;
-
-            if(tmp%2 == 1) {
-                product %= n;
-                product *= array[i];
-            }
-            tmp /= 2;
-
-            tmp2 = pow(array[i], 2);
-            tmp2 %= n;
+            long int tmp = d;
+            long int tmp2 = array[i];
+            long int product = 1;
 
             // Exponentiation by squaring algorithm
-            while(tmp > 1) {
+            while(tmp > 0) {
                 if(tmp%2 == 1) {
-                    tmp2 %= n;
-                    product *= tmp2;
+                    product = ((product * tmp2) % n);
                 }
                 tmp /= 2;
 
@@ -83,13 +86,14 @@ int main(int argc, char** argv) {
                 tmp2 %= n;
             }
 
-            // Compute final modular calculation
-            int tmp3 = pow(tmp2, tmp);
+            /* Compute final modular calculation
+            long int tmp3 = pow(tmp2, tmp);
 
             char M;
-            tmp2 = ((tmp3 * product % n));
-            if(tmp2 == 28) M = ' ';             // Handles SPACE encoding to ASCII conversion
-            else M = tmp2 + '?';                // Handles all other character encoding to ASCII conversion
+            tmp2 = ((tmp3 * product) % n);*/
+            char M;
+            if(product == 28) M = ' ';             // Handles SPACE encoding to ASCII conversion
+            else M = product + '?';                // Handles all other character encoding to ASCII conversion
             output+=M;                          // Builds upon decoded message string
         }
 
@@ -109,42 +113,34 @@ int main(int argc, char** argv) {
         getline(file, text);
         file.close();
         
-        char chars[text.size()] = {};
-        for(int i = 0; i < text.size(); i++)
-            chars[i] = text[i];
-        
         for(int i = 0; i < text.size(); i++) {
             
             // Encode characters (A=2, B=3, ..., Z=27, SPACE=28)
-            if(chars[i] == ' ') chars[i] = 28;
-            else chars[i] -= '?';
+            if(text[i] == ' ') text[i] = 28;
+            else text[i] -= '?';
             
-            int tmp = e;
-            int tmp2;
-            int product = 1;
-
-            if(tmp%2 == 1) product *= chars[i];
-            tmp /= 2;
-
-            tmp2 = pow(chars[i], 2);
-            tmp2 %= n;
-
+            long int tmp = e;
+            long int tmp2 = text[i];
+            long int product = 1;
+            
             // Exponentiation by squaring algorithm
-            while(tmp > 1) {
-                if(tmp%2 == 1) product *= tmp2;
+            while(tmp > 0) {
+                if(tmp%2 == 1) {
+                    product = ((product * tmp2) % n);
+                }
                 tmp /= 2;
 
                 tmp2 = pow(tmp2, 2);
                 tmp2 %= n;
             }
-
-            // Compute final modular calculation
-            int tmp3 = pow(tmp2, tmp);
-
-            tmp2 = ((tmp3 * product) % n);
+            
+            /* Compute final modular calculation
+            long int tmp3 = pow(tmp2, tmp);
+            
+            tmp2 = (tmp3 % n);*/
             
             //unsigned long long int tmp = pow(static_cast<int>(chars[i]), e);
-            cipher.push_back(tmp2);
+            cipher.push_back(product);
         }
         
         ofstream out;
@@ -163,7 +159,7 @@ int main(int argc, char** argv) {
 // Utility function for primality testing
 bool isPrime(int num) {
     
-    for(int i = 1; i <=  sqrt(num); i++) {
+    for(int i = 1; i <= sqrt(num); i++) {
         for(int j = 1; j <=  num; j++) {
             int product = i * j;
             if(i != 1 && j != 1 && product == num) return false;
@@ -177,26 +173,14 @@ bool isPrime(int num) {
 int* getPQ(int num) {
     int* pq = new int[2];
     
-    if(isPrime(num)) {
-        pq[0] = 1;
-        pq[1] = 1;
-        return pq;
-    }
-    
     int i , j;
     
-    bool found = false;
-    for(i = 1; i <=  sqrt(num); i++) {
+    for(i = 1; i <= sqrt(num); i++) {
         for(j = 1; j <=  num; j++) {
             int product = i * j;
-            if(i != 1 && j != 1 && product == num && isPrime(i) && isPrime(j)) {
+            if(i > 1 && j > 1 && (product == num) && isPrime(i) && isPrime(j)) {
                 
-                found = true;
-                
-                if(i == j) {
-                    pq[0] = 1;
-                    pq[1] = 1;
-                } else {
+                if(i != j) {
                     pq[0] = i;
                     pq[1] = j;
                 }
@@ -204,11 +188,6 @@ int* getPQ(int num) {
                 return pq;
             }
         }
-    }
-    
-    if(!found) {
-        pq[0] = 1;
-        pq[1] = 1;
     }
     
     return pq;
